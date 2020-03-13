@@ -31,22 +31,9 @@ public class MinimWrapper {
         }
     }
 
-    public void init(File iFile)
+    public void init()
     {
         minim = new Minim(this);
-
-        String filename = iFile.getAbsolutePath();
-        if (iFile.exists() == false) {
-            System.out.println("file: " + filename + " does not exist");
-        }
-
-        int fftSize = 512;
-        audioRecordingStream  = minim.loadFileStream(filename, fftSize, false);
-        if (audioRecordingStream == null) {
-            System.out.println("Unable to load file as AudioRecordingStream object " + filename);
-        }
-
-        audioRecordingStream.play();
 
         /*
         audioPlayer = minim.loadFile(filename, 2048);
@@ -64,13 +51,31 @@ public class MinimWrapper {
         eRadius = 20;
     }
 
+    public enum FindBPMStrategy
+    {
+        AutoStep;
+    }
     /**
      * FindBPM - finds bpm of song
      * @return float detected bpm
      */
-    public float FindBPM()
+    public float FindBPM(File iFile)
     {
-     //   fullSong.trigger();
+        String filename = iFile.getAbsolutePath();
+        if (iFile.exists() == false) {
+            System.out.println("file: " + filename + " does not exist");
+        }
+
+        int fftSize = 512;
+        audioRecordingStream  = minim.loadFileStream(filename, fftSize, false);
+        if (audioRecordingStream == null) {
+            System.out.println("Unable to load file as AudioRecordingStream object " + filename);
+        }
+
+        audioRecordingStream.play();
+
+
+        //   fullSong.trigger();
         return 0;
     }
-}
+};

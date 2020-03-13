@@ -3,6 +3,9 @@ package beatchart;
 import java.io.File;
 
 public class BeatchartDecoder {
+
+    MinimWrapper wrapper;
+
     /**
      * BeatchartDecoder - perform decoding of beats and audio to generate
      *  an object that can be handled by the StepBuilder
@@ -11,11 +14,10 @@ public class BeatchartDecoder {
      */
 
     public Beatchart DecodeSong(File song, float bpm) {
-
-        MinimWrapper wrapper = new MinimWrapper();
-        wrapper.init(song);
+        wrapper = new MinimWrapper();
+        wrapper.init();
         if (bpm == 0) {
-            bpm = wrapper.FindBPM();
+            bpm = wrapper.FindBPM(song);
         }
 
         Beatchart object = new Beatchart(song, bpm);
