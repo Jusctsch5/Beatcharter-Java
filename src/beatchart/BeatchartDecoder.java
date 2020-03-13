@@ -13,7 +13,7 @@ public class BeatchartDecoder {
     public Beatchart DecodeSong(File song, float bpm) {
 
         MinimWrapper wrapper = new MinimWrapper();
-        wrapper.init(song.getName());
+        wrapper.init(song);
         if (bpm == 0) {
             bpm = wrapper.FindBPM();
         }

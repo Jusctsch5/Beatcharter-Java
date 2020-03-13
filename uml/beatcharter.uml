@@ -1,15 +1,15 @@
 @startuml
 
-package "Step Generator" {
+package "Beatcharter" {
   [Parser]
 
-  package "SongDecoder" {
+  package "BeatDecoder" {
     [Initial]
     [Decode Beats]
     [Decode Audio]
     note top of [Initial] : \
     Takes the incoming audio file\n\
-and creates an object that contains to-be decoded \n\
+and creates a Beatchart object that contains \n\
 audio information to be used by the StepBuilder or \n\
 other 'plugin'
   }

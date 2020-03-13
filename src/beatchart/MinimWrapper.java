@@ -4,26 +4,61 @@ import ddf.minim.AudioPlayer;
 import ddf.minim.AudioSample;
 import ddf.minim.Minim;
 import ddf.minim.analysis.BeatDetect;
+import ddf.minim.spi.AudioRecordingStream;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 public class MinimWrapper {
 
     Minim minim;
-    AudioPlayer song;
-    AudioSample fullSong;
-    BeatDetect beat;
+    AudioPlayer audioPlayer;
+    AudioRecordingStream audioRecordingStream;
+    BeatDetect beatDetect;
     float eRadius;
 
-    public void init(String iFileName)
-    {
-        // size(200, 200, P3D);
-        minim = new Minim(this);
-        // song = minim.loadFile(iFileName, 2048);
-        // song.play();
+     // Required methods for using Minim.
+    public String sketchPath( String fileName ) {
+        return fileName;
+    }
 
-        // Load the whole song in memory
-        fullSong = minim.loadSample(iFileName);
+    public InputStream createInput(String fileName ) {
+        try {
+            return new FileInputStream(new File(fileName));
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    public void init(File iFile)
+    {
+        minim = new Minim(this);
+
+        String filename = iFile.getAbsolutePath();
+        if (iFile.exists() == false) {
+            System.out.println("file: " + filename + " does not exist");
+        }
+
+        int fftSize = 512;
+        audioRecordingStream  = minim.loadFileStream(filename, fftSize, false);
+        if (audioRecordingStream == null) {
+            System.out.println("Unable to load file as AudioRecordingStream object " + filename);
+        }
+
+        audioRecordingStream.play();
+
+        /*
+        audioPlayer = minim.loadFile(filename, 2048);
+        if (audioPlayer == null) {
+            System.out.println("Unable to load file as AudioPlayer song " + filename);
+        }
+        audioPlayer.play();
+        */
+
+
         // a beat detection object song SOUND_ENERGY mode with a sensitivity of 10 milliseconds
-        // beat = new BeatDetect();
+        // beatDetect = new BeatDetect();
 
         //ellipseMode(RADIUS);
         eRadius = 20;
@@ -35,7 +70,7 @@ public class MinimWrapper {
      */
     public float FindBPM()
     {
-        fullSong.trigger();
+     //   fullSong.trigger();
         return 0;
     }
 }
