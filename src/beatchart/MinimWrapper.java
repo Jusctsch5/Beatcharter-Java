@@ -3,7 +3,9 @@ package beatchart;
 import ddf.minim.AudioPlayer;
 import ddf.minim.AudioSample;
 import ddf.minim.Minim;
+import ddf.minim.MultiChannelBuffer;
 import ddf.minim.analysis.BeatDetect;
+import ddf.minim.analysis.FFT;
 import ddf.minim.spi.AudioRecordingStream;
 
 import java.io.File;
@@ -14,7 +16,7 @@ public class MinimWrapper {
 
     Minim minim;
     AudioPlayer audioPlayer;
-    AudioRecordingStream audioRecordingStream;
+    AudioRecordingStream stream;
     BeatDetect beatDetect;
     float eRadius;
 
@@ -61,20 +63,62 @@ public class MinimWrapper {
      */
     public float FindBPM(File iFile)
     {
+        float BPM_SENSITIVITY = 0.05f;
+        int fftSize = 512;
+
         String filename = iFile.getAbsolutePath();
         if (iFile.exists() == false) {
             System.out.println("file: " + filename + " does not exist");
         }
 
-        int fftSize = 512;
-        audioRecordingStream  = minim.loadFileStream(filename, fftSize, false);
-        if (audioRecordingStream == null) {
-            System.out.println("Unable to load file as AudioRecordingStream object " + filename);
+        stream  = minim.loadFileStream(filename, fftSize, false);
+        if (stream == null) {
+            System.out.println("Unable to load file as stream object " + filename);
         }
 
-        audioRecordingStream.play();
+        stream.play();
+        BeatDetect beatDetect = new BeatDetect(BeatDetect.FREQ_ENERGY, fftSize, stream.getFormat().getSampleRate());
+        beatDetect.setSensitivity(BPM_SENSITIVITY);
 
+        // Generate a Fourier Transform on the stream.
+        FFT fft = new FFT(fftSize, stream.getFormat().getSampleRate());
 
+        // Create the buffer we use for reading from the stream.
+        MultiChannelBuffer buffer = new MultiChannelBuffer(fftSize, stream.getFormat().getChannels());
+
+        // Figure out how many samples are in the stream so we can allocate the correct number of spectra.
+        float songTime = stream.getMillisecondLength() / 1000f;
+        int totalSamples = (int)(songTime * stream.getFormat().getSampleRate());
+        float timePerSample = fftSize / stream.getFormat().getSampleRate();
+        int totalChunks = (totalSamples / fftSize) + 1;
+
+        System.out.println("Performing Beat Detection...");
+
+        int lowFreq = fft.freqToIndex(300f);
+        int highFreq = fft.freqToIndex(3000f);
+        for(int chunkIdx = 0; chunkIdx < totalChunks; ++chunkIdx) {
+            stream.read(buffer);
+            float[] data = buffer.getChannel(0);
+            float time = chunkIdx * timePerSample;
+            // now analyze the left channel
+            beatDetect.detect(data, time);
+            fft.forward(data);
+            // fft processing
+            float avg = fft.calcAvg(300f, 3000f);
+            float max = 0f;
+            for(int b=lowFreq; b<=highFreq; b++) {
+                float bandamp = fft.getBand(b);
+                if( bandamp > max ) max = bandamp;
+            }
+
+            // store basic percussion times
+            boolean isKick = beatDetect.isKick();
+            boolean isHat = beatDetect.isHat();
+            boolean isSnare = beatDetect.isSnare();
+            boolean isOnset = beatDetect.isOnset();
+
+            System.out.println("Time:" + time + " isKick:" + isKick + " isHat:" + isHat + " isSnare:" + isSnare + " isOnset:" + isOnset);
+        }
         //   fullSong.trigger();
         return 0;
     }
