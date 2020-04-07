@@ -17,4 +17,5 @@ public class Beatchart {
         songEndSeconds = 0;
     }
 
+
 }
